@@ -12,40 +12,50 @@ public class GenerateGraph {
         int corPreta = Color.BLACK.getRGB();
         int corBranca = Color.WHITE.getRGB();
 
-        int domain_min = -20;
-        int domain_max = 20;
+        int domain_min = -100;
+        int domain_max = 100;
 
-        int range_min = -20;
-        int range_max = 20;
+        int range_min = -100;
+        int range_max = 100;
 
         double domain_step = (double) (domain_max - domain_min)/width;
 
-        int y_before = range_max + 1;
-        int y_proj;
+        int y_before = height;
+        int y_proj = range_max + 1;
         
         for (int x = 0; x < width; x++) {
             double y = func.function(x * domain_step + domain_min);
 
-            if (y != Double.NaN && range_max >= y && y >= range_min) {
+            if (y != Double.NaN) {
+            	System.out.println("y: "+ y +" // range_min: "+ range_min +" // range_max: "+ range_max);
+            	y_proj = (int) (Math.floor((y - range_min)/(range_max - range_min) * height));
+            	if (y_proj == height) y_proj = height - 1;
             	
-                y_proj = (int) Math.floor((1-(y - range_min)/(range_max - range_min)) * height);
-                
-                if (x == 0) {
-                	y_before = y_proj;
-                }
-                
-                if (y_proj > y_before) {
-                	for (int i = y_before; i <= y_proj; i++) {
+            	if (y > range_max || y == Double.POSITIVE_INFINITY) {
+            		for (int i = y_before; i < height; i++) {
                 		imagem.setRGB(x, i, corBranca);
                     }
-                } else {
-                	for (int i = y_before; i >= y_proj; i--) {
+            	
+            	} else if(y < range_min || y == Double.NEGATIVE_INFINITY) {
+            		for (int i = y_before; i >= 0; i--) {
                 		imagem.setRGB(x, i, corBranca);
                     }
-                }
-                
-                y_before = y_proj;
+            		
+            	} else {
+	                if (y_before >= height || y_before < 0) {
+	                	imagem.setRGB(x, y_proj, corBranca);
+	                } else if (y_proj > y_before) {
+	                	for (int i = y_before; i <= y_proj; i++) {
+	                		imagem.setRGB(x, i, corBranca);
+	                    }
+	                } else {
+	                	for (int i = y_before; i >= y_proj; i--) {
+	                		imagem.setRGB(x, i, corBranca);
+	                    }
+	                } 
+            	}
             }
+            y_before = y_proj;
         }
 
         try {
