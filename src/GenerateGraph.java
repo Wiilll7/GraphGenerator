@@ -6,56 +6,54 @@ import java.util.function.BiFunction;
 
 public class GenerateGraph {
 
+	
     public static void gerarPng(int width, int height, String filename, Function func) {
         BufferedImage imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
         int corPreta = Color.BLACK.getRGB();
         int corBranca = Color.WHITE.getRGB();
 
-        int domain_min = -100;
-        int domain_max = 100;
+        int domain_min = -11;
+        int domain_max = 10;
 
-        int range_min = -100;
-        int range_max = 100;
+        int range_min = -10;
+        int range_max = 10;
 
         double domain_step = (double) (domain_max - domain_min)/width;
 
-        int y_before = height;
-        int y_proj = range_max + 1;
+        double y = func.function(domain_min - domain_step);
+        
+        double normalized_y = Math.max(0.0, Math.min(1.0,(y - range_min) / (range_max - range_min)));
+        int target = height - 1 - (int) (normalized_y * (height - 1));
+        int y_proj_prev = target;
         
         for (int x = 0; x < width; x++) {
-            double y = func.function(x * domain_step + domain_min);
+            y = func.function(x * domain_step + domain_min);
+            
+            normalized_y = Math.max(0.0, Math.min(1.0,(y - range_min) / (range_max - range_min)));
+            target = height - 1 - (int) (normalized_y * (height - 1));
 
-            if (y != Double.NaN) {
-            	System.out.println("y: "+ y +" // range_min: "+ range_min +" // range_max: "+ range_max);
-            	y_proj = (int) (Math.floor((y - range_min)/(range_max - range_min) * height));
-            	if (y_proj == height) y_proj = height - 1;
-            	
-            	if (y > range_max || y == Double.POSITIVE_INFINITY) {
-            		for (int i = y_before; i < height; i++) {
-                		imagem.setRGB(x, i, corBranca);
+            
+            if (!Double.isNaN(y) &&
+            	!Double.isNaN(y_proj_prev) &&
+            	!Double.isInfinite(y) &&
+            	!Double.isInfinite(y_proj_prev) &&
+            	y <= range_max &&
+            	y >= range_min
+            ) {
+                if (y_proj_prev < target) {
+                	for (int i = y_proj_prev; i <= target; i++) {
+                        imagem.setRGB(x, i, corBranca);
                     }
-            	
-            	} else if(y < range_min || y == Double.NEGATIVE_INFINITY) {
-            		for (int i = y_before; i >= 0; i--) {
-                		imagem.setRGB(x, i, corBranca);
+                } else {
+                	for (int i = y_proj_prev; i >= target; i--) {
+                        imagem.setRGB(x, i, corBranca);
                     }
-            		
-            	} else {
-	                if (y_before >= height || y_before < 0) {
-	                	imagem.setRGB(x, y_proj, corBranca);
-	                } else if (y_proj > y_before) {
-	                	for (int i = y_before; i <= y_proj; i++) {
-	                		imagem.setRGB(x, i, corBranca);
-	                    }
-	                } else {
-	                	for (int i = y_before; i >= y_proj; i--) {
-	                		imagem.setRGB(x, i, corBranca);
-	                    }
-	                } 
-            	}
+                }
+                
+               
             }
-            y_before = y_proj;
+            y_proj_prev = target;
         }
 
         try {
