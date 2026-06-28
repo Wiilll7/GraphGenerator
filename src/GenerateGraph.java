@@ -20,12 +20,31 @@ public class GenerateGraph {
 
         double domain_step = (double) (domain_max - domain_min)/width;
 
+        int y_before = range_max + 1;
+        int y_proj;
+        
         for (int x = 0; x < width; x++) {
             double y = func.function(x * domain_step + domain_min);
 
             if (y != Double.NaN && range_max >= y && y >= range_min) {
-                double y_proj = (1-(y - range_min)/(range_max - range_min)) * height;
-                imagem.setRGB(x, Calculus.round(Math.floor(y_proj)), corBranca);
+            	
+                y_proj = (int) Math.floor((1-(y - range_min)/(range_max - range_min)) * height);
+                
+                if (x == 0) {
+                	y_before = y_proj;
+                }
+                
+                if (y_proj > y_before) {
+                	for (int i = y_before; i <= y_proj; i++) {
+                		imagem.setRGB(x, i, corBranca);
+                    }
+                } else {
+                	for (int i = y_before; i >= y_proj; i--) {
+                		imagem.setRGB(x, i, corBranca);
+                    }
+                }
+                
+                y_before = y_proj;
             }
         }
 
