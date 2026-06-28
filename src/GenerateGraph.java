@@ -1,17 +1,20 @@
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
-import java.util.function.BiFunction;
 
 public class GenerateGraph {
 
 	
     public static void gerarPng(int width, int height, String filename, Function func) {
-        BufferedImage imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-        int corPreta = Color.BLACK.getRGB();
-        int corBranca = Color.WHITE.getRGB();
+    	BufferedImage imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    	
+    	Graphics2D g2d = getBaseGraph(width, height, imagem);
 
         int domain_min = -11;
         int domain_max = 10;
@@ -41,20 +44,12 @@ public class GenerateGraph {
             	y <= range_max &&
             	y >= range_min
             ) {
-                if (y_proj_prev < target) {
-                	for (int i = y_proj_prev; i <= target; i++) {
-                        imagem.setRGB(x, i, corBranca);
-                    }
-                } else {
-                	for (int i = y_proj_prev; i >= target; i--) {
-                        imagem.setRGB(x, i, corBranca);
-                    }
-                }
-                
-               
+               g2d.drawLine(x, y_proj_prev, x, target);
             }
             y_proj_prev = target;
         }
+        
+        g2d.dispose();
 
         try {
             File arquivoSaida = new File(filename);
@@ -63,5 +58,32 @@ public class GenerateGraph {
         } catch (Exception e) {
             System.err.println("Erro ao salvar o arquivo: " + e.getMessage());
         }
+    }
+    
+    public static Graphics2D getBaseGraph(int width, int height, BufferedImage imagem){
+    	Graphics2D g2d = imagem.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, width, height);
+        
+        try {
+	        File fonte = new File("assets/VCR_OSD_MONO.ttf");
+	        Font font = Font.createFont(Font.TRUETYPE_FONT, fonte).deriveFont(50f);
+	        
+	        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(font);
+	        
+	        g2d.setFont(font);
+	        g2d.setColor(Color.BLACK);
+	        
+        } catch(Exception e) {
+        	e.printStackTrace();
+        }
+        
+        return g2d;
     }
 }
