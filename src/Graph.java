@@ -75,25 +75,27 @@ public class Graph {
         return g2d;
     }
     
+    public void drawThingies(Graphics2D g2d, double scale, double xMin, double xMax) {
+    	double stepMin = (width * scale)/(xMin * 2);
+        
+        for (double x = 0; x >= -width/2; x += stepMin) {
+        	g2d.drawLine((int) x, 8,(int) x, -8);
+        }
+        
+        double stepMax = (width * scale)/(xMax * 2);
+        
+        for (double x = 0; x <= width/2; x += stepMax) {
+        	g2d.drawLine((int) x, 8, (int) x, -8);
+        }
+    }
+    
     public void printFunc(Graphics2D g2d, Function func) {
-    	double xMin = -10.0;
-        double xMax = 10.0;
+    	double xMin = -10;
+        double xMax = 10;
         double yMin = -10.0;
         double yMax = 10.0;
         
-        ArrayList<Integer> listStepNeg = new ArrayList<Integer>();
-    	ArrayList<Integer> listStepPos = new ArrayList<Integer>();
-    	
-        double stepNeg = xMin/5;
-        double stepPos = xMax/5;
-        
-        for (int i = 0; i > xMin; i += stepNeg) {
-        	listStepNeg.add(i);
-        }
-        for (int i = 0; i < xMax; i += stepPos) {
-        	listStepPos.add(i);
-        }
-        
+        drawThingies(g2d, 2.0 ,xMin, xMax);
         double scaleX = (width / 2.0) / xMax;
         double scaleY = (height / 2.0) / yMax;
 
@@ -110,10 +112,7 @@ public class Graph {
             double y2 = func.function(x2);
 
             if (Double.isNaN(y1) || Double.isNaN(y2)) continue;
-
-            if (listStepNeg.contains(x1) || listStepPos.contains(x1)) {
-            	g2d.drawLine(pixelX, 4, pixelX, -4);
-            }
+            
             
             double pixelY1 = y1 * scaleY;
             double pixelY2 = y2 * scaleY;
