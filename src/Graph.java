@@ -21,10 +21,10 @@ public class Graph {
 		this.height = height;
 	}
 	
-    public void generateGraphPng(String filename, Function func) {
+    public void generateGraphPng(String filename, Function func, double xMin, double xMax) {
     	BufferedImage imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     	
-    	Graphics2D g2d = getBaseGraph(imagem);
+    	Graphics2D g2d = getBaseGraph(imagem, xMin, xMax);
 
         printFunc(g2d, func);
         
@@ -39,7 +39,7 @@ public class Graph {
         }
     }
     
-    public Graphics2D getBaseGraph(BufferedImage imagem){
+    public Graphics2D getBaseGraph(BufferedImage imagem, double xMin, double xMax){
     	Graphics2D g2d = imagem.createGraphics();
         
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -72,11 +72,9 @@ public class Graph {
         g2d.drawLine(-width/2, 0, width/2, 0);
         g2d.drawLine(0, -height/2, 0, height/2);
         
-        return g2d;
-    }
-    
-    public void drawThingies(Graphics2D g2d, double scale, double xMin, double xMax) {
-    	double stepMin = (width * scale)/(xMin * 2);
+        double scale = xMax / 5;
+        
+        double stepMin = (width * scale)/(xMin * 2);
         
         for (double x = 0; x >= -width/2; x += stepMin) {
         	g2d.drawLine((int) x, 8,(int) x, -8);
@@ -87,6 +85,8 @@ public class Graph {
         for (double x = 0; x <= width/2; x += stepMax) {
         	g2d.drawLine((int) x, 8, (int) x, -8);
         }
+        
+        return g2d;
     }
     
     public void printFunc(Graphics2D g2d, Function func) {
@@ -95,7 +95,6 @@ public class Graph {
         double yMin = -10.0;
         double yMax = 10.0;
         
-        drawThingies(g2d, 2.0 ,xMin, xMax);
         double scaleX = (width / 2.0) / xMax;
         double scaleY = (height / 2.0) / yMax;
 

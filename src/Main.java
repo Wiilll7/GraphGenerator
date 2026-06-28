@@ -9,7 +9,7 @@ public class Main {
         
         Graph gg = new Graph(width, height);
         
-        gg.generateGraphPng(nomeArquivo, func);
+        gg.generateGraphPng(nomeArquivo, func, -10, 10);
         
 	}
 
