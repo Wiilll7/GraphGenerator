@@ -16,37 +16,26 @@ public class GenerateGraph {
     	
     	Graphics2D g2d = getBaseGraph(width, height, imagem);
 
-        int domain_min = -11;
+        int domain_min = -10;
         int domain_max = 10;
 
         int range_min = -10;
         int range_max = 10;
 
         double domain_step = (double) (domain_max - domain_min)/width;
-
-        double y = func.function(domain_min - domain_step);
-        
-        double normalized_y = Math.max(0.0, Math.min(1.0,(y - range_min) / (range_max - range_min)));
-        int target = height - 1 - (int) (normalized_y * (height - 1));
-        int y_proj_prev = target;
         
         for (int x = 0; x < width; x++) {
-            y = func.function(x * domain_step + domain_min);
+            double y1 = func.function(x * domain_step + domain_min);
+            double y2 = func.function((x+1) * domain_step + domain_min);
             
-            normalized_y = Math.max(0.0, Math.min(1.0,(y - range_min) / (range_max - range_min)));
-            target = height - 1 - (int) (normalized_y * (height - 1));
-
+            double normalized_y1 = (y1 - range_min) / (range_max - range_min);
+            double normalized_y2 = (y2 - range_min) / (range_max - range_min);
+            int target1 = height - 1 - (int) (normalized_y1 * (height - 1));
+            int target2 = height - 1 - (int) (normalized_y2 * (height - 1));
             
-            if (!Double.isNaN(y) &&
-            	!Double.isNaN(y_proj_prev) &&
-            	!Double.isInfinite(y) &&
-            	!Double.isInfinite(y_proj_prev) &&
-            	y <= range_max &&
-            	y >= range_min
-            ) {
-               g2d.drawLine(x, y_proj_prev, x, target);
+            if (Calculus.abs(target1 - target2) < height * 0.8) {
+            	g2d.drawLine(x, target1, x, target2);
             }
-            y_proj_prev = target;
         }
         
         g2d.dispose();
