@@ -4,6 +4,8 @@ public class Calculus {
 	public final static double e = 2.7182818284590452353602874713526;
 	public final static double ln2 = 0.69314718055994530941723212145;
 	
+	
+	
 	public static double sin(double num) {
 		num = num % (2 * pi);
 	    
@@ -49,6 +51,7 @@ public class Calculus {
 
 	public static double pow(double num, int exp) {
 		if (exp == 0) return 1;
+		if (num == 0) return 0;
 		
 		double result = 1;
 		
@@ -60,6 +63,10 @@ public class Calculus {
 	}
 	
 	public static double sqrt(double a) {
+		if (a < 0.0001 && a >= -0.0001) return 0;
+		
+		if (a < -0.0001) return 0/0f;
+		
 		double initial = (a+1)/2;
 		double result = 0;
 		double variation = 0;
@@ -84,16 +91,24 @@ public class Calculus {
 	
 	public static double ln(double x) {
 		if (x <= 0) return 0.0/0.0;
-		return 2*(((x-1)/(x+1)) + 1.0/3.0*pow((x-1)/(x+1), 3) + 1.0/5.0*pow((x-1)/(x+1), 5) + 1.0/7.0*pow((x-1)/(x+1), 7) 
-		+ 1.0/9.0*pow((x-1)/(x+1), 9) + 1.0/11.0*pow((x-1)/(x+1), 11) + 1.0/13.0*pow((x-1)/(x+1), 13) + 1.0/15.0*pow((x-1)/(x+1), 15)
-		+ 1.0/17.0*pow((x-1)/(x+1), 17) + 1.0/19.0*pow((x-1)/(x+1), 19) + 1.0/21.0*pow((x-1)/(x+1), 21) + 1.0/23.0*pow((x-1)/(x+1), 23));
+		double z = (x-1)/(x+1);
+		return 2*((z) + pow(z, 3)/3.0 + pow(z, 5)/5.0 + pow(z, 7)/7.0 + pow(z, 9)/9.0 + pow(z, 11)/11.0 + pow(z, 13)/13.0 + pow(z, 15)/15.0
+		+ pow(z, 17)/17.0 + pow(z, 19)/19.0 + pow(z, 21)/21.0 + pow(z, 23)/23.0);
 	}
 	
 	public static double exp(double num, double exp) {
+		if (num == 0) return 0;
+	    if (exp == 0) return 1;
+		
 		double x = ln(num) * exp;
-		return 1 + x + (pow(x, 2)/2.0) + (pow(x, 3)/6.0) + (pow(x, 4)/24.0) + (pow(x, 5)/120.0) + (pow(x, 6)/720.0) + (pow(x, 7)/5040.0) + (pow(x, 8)/40320.0)
-				 + (pow(x, 9)/362880.0) + (pow(x, 10)/3628800.0) + (pow(x, 11)/3.99168E7) + (pow(x, 12)/4.790016E8) + (pow(x, 13)/6.2270208E9);
-		//double result = 
+		double tn = (x < 0) ? 0.5 : 2.0;
+		
+		for (int i = 0; i < 5; i++) {
+			tn = tn*(1.0 + x - ln(tn));
+			System.out.println(tn);
+		}
+		
+		return tn;
 	}
 	
 	public static int round(double num) {
@@ -104,12 +119,18 @@ public class Calculus {
 		return a + factor > b && b > a - factor;
 	}
 	
+	public static int min(int a, int b) {
+        return (a <= b) ? a : b;
+    }
+	
+	public static int max(int a, int b) {
+	    if ((a == 0.0d) && (b == 0.0d)) return b;
+	    
+	    return (a >= b) ? a : b;
+	}
+	
 	public static void main(String[] args) {
-		/*double result = 1;
-		for (int i = 2; i < 15; i++) {
-			result *= i;
-			System.out.println(+i+"! = "+result);
-		}*/
-		System.out.println(round(3.499999));
+		System.out.println(Calculus.exp(2, -3));
+		System.out.println(Math.log(e));
 	}
 }
