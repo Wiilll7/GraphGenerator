@@ -3,13 +3,13 @@ public class Main {
 	public static void main(String[] args) {
 		
 		Function func = new ConcreteFunction();
-		int width = 1000;
+		int width = 1920;
         int height = 1920;
         String nomeArquivo = "meu_grafico.png";
         
         Graph gg = new Graph(width, height);
         
-        gg.generateGraphPng(nomeArquivo, func, -15, 15);
+        gg.generateGraphPng(nomeArquivo, func, -5, 10, -10, 10);
         
 	}
 
