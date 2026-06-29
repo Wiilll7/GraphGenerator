@@ -1,5 +1,5 @@
 public class ConcreteFunction implements Function {
 	public double function(double x) {
-		return Calculus.sin(x) + Calculus.sqrt(Calculus.cos(x));
+		return Calculus.pow(0.5, x);
 	}
 }

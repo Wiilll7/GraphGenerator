@@ -75,16 +75,18 @@ public class Graph {
         
         // Faz os calculos de proporcao necessarios para desenhar o grafico base
         double totalX = xMax - xMin;
+        double totalY = (xMax - xMin) * height / width;
         double proporcaoZero = -xMin / totalX;
         int origemX = (int) (proporcaoZero * widthArea);
-        int origemY = heightArea / 2; 
+        int origemY = heightArea / 2;
         int leftLimit = -origemX - margemX;
         int rightLimit = (widthArea - origemX) + margemX;
         int upLimit = -origemY - margemY;
         int downLimit = (heightArea - origemY) + margemY;
         double xPixels = widthArea / totalX;
-        double yPixels = heightArea / totalX;
-        double step = totalX / 10.0; 
+        double yPixels = heightArea / totalY;
+        double step = totalX / 10.0;
+        //double stepY = 
         
         // Seta o ponto (0, 0) do grafico
         g2d.translate(margemX + origemX, margemY + origemY);
@@ -125,15 +127,7 @@ public class Graph {
 
             double y1 = func.function(x1);
             double y2 = func.function(x2);
-
-            if (!Double.isNaN(y1) && Double.isNaN(y2)) {
-                g2d.drawLine(pixelX, (int)(y1 * pixels), pixelX + 1, 0); 
-                continue;
-            }
-            if (Double.isNaN(y1) && !Double.isNaN(y2)) {
-                g2d.drawLine(pixelX, 0, pixelX + 1, (int)(y2 * pixels)); 
-                continue;
-            }
+            
             if (Double.isNaN(y1) || Double.isNaN(y2)) continue;
             
             double pixelY1 = y1 * pixels;
@@ -162,9 +156,9 @@ public class Graph {
         int textSizeNeg;
         int px;
         
-    	// Calcula e desenha os numeros e grid para X positivos
+    	// Calcula e desenha os numeros e grid para X
         for (double x = step; x <= xMax; x += step) {
-        	// Calcula pontos para os numeros de X positivos
+        	// Calcula pontos para os numeros de X
         	px = (int) (x * xPixels);
         	
         	// Seta o texto para os positivos
@@ -194,16 +188,16 @@ public class Graph {
         }
         
         // Calcula e desenha os numeros e grid para Y
-        for (double x = step; x <= xMax; x += step) {
+        for (double y = step; y <= xMax; y += step) {
         	// Calcula pontos para os numeros de Y
-            px = (int) (x * yPixels);
+            px = (int) (y * yPixels);
             
             // Seta o texto para os positivos
-            textPos = String.format("%.1f", x);
+            textPos = String.format("%.1f", y);
             textSizePos = metrics.stringWidth(textPos);
             
             // Seta o texto para os negativos
-            textNeg = "-"+String.format("%.1f", x);
+            textNeg = "-"+String.format("%.1f", y);
             textSizeNeg = metrics.stringWidth(textNeg);
             
             
@@ -220,10 +214,10 @@ public class Graph {
         	g2d.setColor(Color.BLACK);
         	
         	g2d.drawLine(8, -px, -8, -px); // Positivo
-            g2d.drawString(textPos, -textSizePos - 25, -px + (metrics.getAscent() / 2));
+            g2d.drawString(textPos, -textSizePos - 25, -px + (metrics.getAscent()));
             
             g2d.drawLine(8, px, -8, px); // Negativo
-            g2d.drawString(textNeg, -textSizeNeg - 25, px + (metrics.getAscent() / 2));
+            g2d.drawString(textNeg, -textSizeNeg - 25, px + (metrics.getAscent()));
         }
     }
     
@@ -236,18 +230,18 @@ public class Graph {
         double stepSubGrid = step / 5.0;
 
         // Faz o subgrid para o X
-        for (double x = stepSubGrid; x <= xMax; x += stepSubGrid) {
+        for (double x = stepSubGrid - step; x <= xMax + step; x += stepSubGrid) {
             int px = (int) (x * xPixels);
             g2d.drawLine(px, upLimit, px, downLimit); // Positivo
             g2d.drawLine(-px, upLimit, -px, downLimit); // Negativo
         }
+        
         // Faz o subgrid para o Y
-        for (double x = stepSubGrid; x <= xMax; x += stepSubGrid) {
+        for (double x = stepSubGrid - step; x <= xMax + step; x += stepSubGrid) {
             int py = (int) (x * yPixels);
             g2d.drawLine(leftLimit, -py, rightLimit, -py); // Positivo
             g2d.drawLine(leftLimit, py, rightLimit, py); // Negativo
         }
     }
-    
     
 }

@@ -49,6 +49,62 @@ public class Calculus {
 		return module ? -result : result;
 	}
 
+	public static double tan(double num) {
+		return sin(num)/cos(num);
+	}
+	
+	public static double sec(double num) {
+		return 1/cos(num);
+	}
+	
+	public static double cossec(double num) {
+		return 1/sin(num);
+	}
+	
+	public static double cotan(double num) {
+		return cos(num)/sin(num);
+	}
+	
+	public static double arcsin(double num) {
+		if (num < -1 || num > 1) return 0.0/0.0;
+		
+		double y = num;
+		
+		for (int i = 0; i < 5; i++) {
+			y = y - (sin(y) - num) / cos(y);
+		}
+		
+		return y;
+	}
+	
+	public static double arccos(double num) {
+		if (num < -1 || num > 1) return 0.0/0.0;
+		
+		double y = pi/2;
+		
+		for (int i = 0; i < 5; i++) {
+			y = y + (cos(y) - num) / sin(y);
+		}
+		
+		return y;
+	}
+	
+	public static double arctan(double num) {
+		return arcsin(num / sqrt(1 + num*num));
+	}
+	
+	public static double arcsec(double num) {
+		return arccos(1/num);
+	}
+	
+	public static double arccossec(double num) {
+		return arcsin(1/num);
+	}
+	
+	public static double arccotan(double num) {
+		return pi/2 - arctan(num);
+	}
+	
 	public static double pow(double num, int exp) {
 		if (exp == 0) return 1;
 		if (num == 0) return 0;
@@ -62,17 +118,38 @@ public class Calculus {
 		return result;
 	}
 	
-	public static double sqrt(double a) {
-		if (a < 0.0001 && a >= -0.0001) return 0;
+	public static double pow(double num, double exp) {
+		if (num == 0) return 0;
+	    if (exp == 0) return 1;
+	    if (num < 0) return 0.0/0.0;
+	    
+		double x = ln(num) * exp;
+		boolean isNegative = (x < 0);
 		
-		if (a < -0.0001) return 0/0f;
+		if (isNegative) {
+			x = -x;
+		}
 		
-		double initial = (a+1)/2;
+		double tn = (x < 0) ? 0.5 : 2.0;
+		
+		for (int i = 0; i < 5; i++) {
+			tn = tn*(1.0 + x - ln(tn));
+		}
+		
+		return isNegative ? 1/tn : tn;
+	}
+	
+	public static double sqrt(double num) {
+		if (num < 0.0001 && num >= -0.0001) return 0;
+		
+		if (num < -0.0001) return 0/0f;
+		
+		double initial = (num+1)/2;
 		double result = 0;
 		double variation = 0;
 		
 		for (int i = 0; i < 15; i++) {
-			result = 0.5 * (initial + (a/initial));
+			result = 0.5 * (initial + (num/initial));
 			
 			variation = (initial - result) < 0 ? -(initial - result): (initial - result);
 			if (variation < 0.0000000001) {
@@ -89,26 +166,11 @@ public class Calculus {
 		return (num < 0) ? -num : num;
 	}
 	
-	public static double ln(double x) {
-		if (x <= 0) return 0.0/0.0;
-		double z = (x-1)/(x+1);
+	public static double ln(double num) {
+		if (num <= 0) return 0.0/0.0;
+		double z = (num-1)/(num+1);
 		return 2*((z) + pow(z, 3)/3.0 + pow(z, 5)/5.0 + pow(z, 7)/7.0 + pow(z, 9)/9.0 + pow(z, 11)/11.0 + pow(z, 13)/13.0 + pow(z, 15)/15.0
 		+ pow(z, 17)/17.0 + pow(z, 19)/19.0 + pow(z, 21)/21.0 + pow(z, 23)/23.0);
-	}
-	
-	public static double exp(double num, double exp) {
-		if (num == 0) return 0;
-	    if (exp == 0) return 1;
-		
-		double x = ln(num) * exp;
-		double tn = (x < 0) ? 0.5 : 2.0;
-		
-		for (int i = 0; i < 5; i++) {
-			tn = tn*(1.0 + x - ln(tn));
-			System.out.println(tn);
-		}
-		
-		return tn;
 	}
 	
 	public static int round(double num) {
@@ -123,14 +185,16 @@ public class Calculus {
         return (a <= b) ? a : b;
     }
 	
-	public static int max(int a, int b) {
+	public static double max(double a, double b) {
 	    if ((a == 0.0d) && (b == 0.0d)) return b;
 	    
 	    return (a >= b) ? a : b;
 	}
 	
+	/*
 	public static void main(String[] args) {
-		System.out.println(Calculus.exp(2, -3));
-		System.out.println(Math.log(e));
+		System.out.println(pow(2.0, -3.0));
+		System.out.println(Math.pow(2.0, -3.0));
 	}
+	*/
 }
