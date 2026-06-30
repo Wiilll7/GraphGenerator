@@ -4,12 +4,13 @@ public class Main {
 		
 		Function func = new ConcreteFunction();
 		int width = 1920;
-        int height = 1080;
-        String nomeArquivo = "meu_grafico.png";
+        int height = 1920;
         
-        Graph gg = new Graph(width, height);
+        Graph gg = new Graph(width, height, 10, 10, -10, 10);
         
-        gg.generateGraphPng(nomeArquivo, func, -50, 70, -40, 90);
+        gg.addFunc(func);
+        
+        gg.generateGraphPng();
         
 	}
 

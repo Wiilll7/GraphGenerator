@@ -10,24 +10,48 @@ import javax.imageio.ImageIO;
 
 public class Graph {
 
+	// Atributos
 	private int width;
 	private int height;
+	private double xMin;
+	private double xMax;
+	private double yMin;
+	private double yMax;
+	private BufferedImage imagem;
+	private Graphics2D g2d;
 	
-	public Graph(int width, int height) {
+	
+	// Construtor
+    public Graph(int width, int height, double xMin, double xMax, double yMin, double yMax) {
+    	if (xMin == xMax || yMin == yMax) throw new IllegalArgumentException("Os valores de mínimo e máximo não podem ser iguais");
+    	if (xMin > xMax) {
+    		double aux = xMin;
+    		xMin = xMax;
+    		xMax = aux;
+    	}
+    	if (yMin > yMax) {
+    		double aux = yMin;
+    		yMin = yMax;
+    		yMax = aux;
+    	}
 		this.width = width;
 		this.height = height;
+		this.xMin = xMin;
+		this.xMax = xMax;
+		this.yMin = yMin;
+		this.yMax = yMax;
+		this.imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        this.g2d = getBaseGraph();
 	}
-	
-    public void generateGraphPng(String filename, Function func, double xMin, double xMax, double yMin, double yMax) {
-        BufferedImage imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = getBaseGraph(imagem, xMin, xMax, yMin, yMax);
 
-        printFunc(g2d, func, xMin, xMax, yMin, yMax);
-        
+    
+    // Gera o png do grafico final 
+	public void generateGraphPng() {
+		
         g2d.dispose();
 
         try {
-            File file = new File(filename);
+            File file = new File("Grafico.png");
             ImageIO.write(imagem, "png", file);
             System.out.println("Sucesso! Imagem salva em: " + file.getAbsolutePath());
         } catch (Exception e) {
@@ -36,10 +60,10 @@ public class Graph {
     }
     
     // Desenha o grafico base (linhas X e Y, escala e grid)
-    public Graphics2D getBaseGraph(BufferedImage imagem, double xMin, double xMax, double yMin, double yMax){
+    public Graphics2D getBaseGraph(){
     	
     	// Inicializa o Graphics2D e seta algumas configurações de estilos para ele
-        Graphics2D g2d = imagem.createGraphics();
+        g2d = imagem.createGraphics();
         
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -67,14 +91,14 @@ public class Graph {
         }
         
         // Desenha o grid e subgrid
-        drawSubGrid(g2d, xMax, xMin, yMax, yMin);
-        drawGrid(g2d, xMax, xMin, yMax, yMin);
+        drawSubGrid();
+        drawGrid();
         
         return g2d;
     }
     
     // Desenha a funcao em cima do grafico base gerado
-    public void printFunc(Graphics2D g2d, Function func, double xMin, double xMax, double yMin, double yMax) {
+    public void addFunc(Function func) {
     	g2d.setStroke(new BasicStroke(10.0f));
         g2d.setColor(new Color(173, 33, 52));
     	
@@ -118,7 +142,7 @@ public class Graph {
     }
     
     // Desenha o grid
-    public void drawGrid(Graphics2D g2d, double xMax, double xMin, double yMax, double yMin) {
+    public void drawGrid() {
     	
     	// Inicializacao de variaveis usadas nos loops
         FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
@@ -167,6 +191,8 @@ public class Graph {
             g2d.setColor(gray_color);
             g2d.drawLine(px, upLimit, px, downLimit);
 
+            if (x == 0) continue;
+            
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
             textSize = metrics.stringWidth(text);
@@ -202,6 +228,8 @@ public class Graph {
             g2d.setColor(gray_color);
             g2d.drawLine(px, upLimit, px, downLimit);
 
+            if (x == 0) continue;
+            
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
             textSize = metrics.stringWidth(text);
@@ -304,7 +332,7 @@ public class Graph {
     }
     
     // Desenha o subgrid
-    public void drawSubGrid(Graphics2D g2d, double xMax, double xMin, double yMax, double yMin) {
+    public void drawSubGrid() {
     	
     	// Define a cor e espessura do subgrid
         g2d.setStroke(new BasicStroke(2f));
