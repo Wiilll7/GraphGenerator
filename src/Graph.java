@@ -20,16 +20,9 @@ public class Graph {
 	
     public void generateGraphPng(String filename, Function func, double xMin, double xMax, double yMin, double yMax) {
         BufferedImage imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        
-        int margemX = (int) (width * 0.05);
-        int margemY = (int) (height * 0.05);
-        
-        int widthArea = width - (margemX * 2);
-        int heightArea = height - (margemY * 2);
-        
-        Graphics2D g2d = getBaseGraph(imagem, xMin, xMax, yMin, yMax, widthArea, heightArea, margemX, margemY);
+        Graphics2D g2d = getBaseGraph(imagem, xMin, xMax, yMin, yMax);
 
-        printFunc(g2d, func, xMin, xMax, yMin, yMax, widthArea, heightArea, margemX);
+        printFunc(g2d, func, xMin, xMax, yMin, yMax);
         
         g2d.dispose();
 
@@ -43,7 +36,7 @@ public class Graph {
     }
     
     // Desenha o grafico base (linhas X e Y, escala e grid)
-    public Graphics2D getBaseGraph(BufferedImage imagem, double xMin, double xMax, double yMin, double yMax, int widthArea, int heightArea, int margemX, int margemY){
+    public Graphics2D getBaseGraph(BufferedImage imagem, double xMin, double xMax, double yMin, double yMax){
     	
     	// Inicializa o Graphics2D e seta algumas configurações de estilos para ele
         Graphics2D g2d = imagem.createGraphics();
@@ -73,64 +66,34 @@ public class Graph {
             e.printStackTrace();
         }
         
-        
-        
-        // Usado na movimentação da origem
-        double totalX = xMax - xMin;
-        double totalY = yMax - yMin;
-        double proporcaoZeroX = -xMin / totalX;
-        double proporcaoZeroY = yMax / totalY;
-        int origemX = (int) (proporcaoZeroX * widthArea);
-        int origemY = (int) (proporcaoZeroY * heightArea);
-        
-        // Limites máximos e mínimos
-        int leftLimit = -origemX - margemX;
-        int rightLimit = (widthArea - origemX) + margemX;
-        int upLimit = -origemY - margemY;
-        int downLimit = (heightArea - origemY) + margemY;
-        
-        double xPixels = widthArea / totalX;
-        double yPixels = heightArea / totalY;
-        double stepX = totalX / 10.0;
-        double stepY = totalY / 10.0;
-        
-        
-        // Seta o ponto (0, 0) do grafico
-        g2d.translate(margemX + origemX, margemY + origemY);
-        
         // Desenha o grid e subgrid
-        drawSubGrid(g2d, stepX, stepY, xMax, xMin, yMax, yMin, xPixels, yPixels, upLimit, downLimit, leftLimit, rightLimit);
-        drawGrid(g2d, xMax, xMin, yMax, yMin, xPixels, yPixels, stepX, stepY, upLimit, downLimit, leftLimit, rightLimit);
-        
-        
-        // Desenha a linha principal X e Y do grafico
-        g2d.drawLine(leftLimit, 0, rightLimit, 0); 
-        g2d.drawLine(0, upLimit, 0, downLimit);
-        
-        // Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
-        g2d.scale(1.0, -1.0);
+        drawSubGrid(g2d, xMax, xMin, yMax, yMin);
+        drawGrid(g2d, xMax, xMin, yMax, yMin);
         
         return g2d;
     }
     
     // Desenha a funcao em cima do grafico base gerado
-    public void printFunc(Graphics2D g2d, Function func, double xMin, double xMax, double yMin, double yMax, int widthArea, int heightArea, int margemX) {
+    public void printFunc(Graphics2D g2d, Function func, double xMin, double xMax, double yMin, double yMax) {
     	g2d.setStroke(new BasicStroke(10.0f));
+        g2d.setColor(new Color(173, 33, 52));
     	
+    	// Calcula a margem e espaco util para desenho
+    	int margemX = (int) (width * 0.05);
+        int margemY = (int) (height * 0.05);
+        int widthArea = width - (margemX * 2);
+        int heightArea = height - (margemY * 2);
+    	
+        // Usado na movimentação da origem
         double totalX = xMax - xMin;
         double totalY = yMax - yMin;
+        double proporcaoZeroX = -xMin / totalX;
+        int origemX = (int) (proporcaoZeroX * widthArea);
+        
         double pixelsX = widthArea / totalX;
         double pixelsY = heightArea / totalY;
-
-        double proporcaoZeroX = -xMin / totalX;
-        double proporcaoZeroY = yMax / totalY;
-        int origemX = (int) (proporcaoZeroX * widthArea);
-        int origemY = (int) (proporcaoZeroY * heightArea);
-        
         int startPixelX = -origemX - margemX;
         int endPixelX = (widthArea - origemX) + margemX;
-        
-        g2d.setColor(new Color(173, 33, 52));
         
         
         for (int pixelX = startPixelX; pixelX < endPixelX - 1; pixelX++) {
@@ -152,22 +115,10 @@ public class Graph {
             }
             g2d.drawLine(pixelX, (int)pixelY1, pixelX + 1, (int)pixelY2);
         }
-
-    
-    
-}
-    
+    }
     
     // Desenha o grid
-    public void drawGrid(
-    		Graphics2D g2d,
-    		double xMax, double xMin,
-    		double yMax, double yMin,
-    		double xPixels, double yPixels,
-    		double stepX, double stepY,
-    		int upLimit, int downLimit,
-    		int leftLimit, int rightLimit
-    	) {
+    public void drawGrid(Graphics2D g2d, double xMax, double xMin, double yMax, double yMin) {
     	
     	// Inicializacao de variaveis usadas nos loops
         FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
@@ -177,6 +128,34 @@ public class Graph {
         String text;
         int textSize;
         int px;
+        
+        // Calcula a margem e espaco util para desenho
+        int margemX = (int) (width * 0.05);
+        int margemY = (int) (height * 0.05);
+        int widthArea = width - (margemX * 2);
+        int heightArea = height - (margemY * 2);
+        
+        // Usado na movimentação da origem
+        double totalX = xMax - xMin;
+        double totalY = yMax - yMin;
+        double proporcaoZeroX = -xMin / totalX;
+        double proporcaoZeroY = yMax / totalY;
+        int origemX = (int) (proporcaoZeroX * widthArea);
+        int origemY = (int) (proporcaoZeroY * heightArea);
+        
+        // Limites maximos e minimos
+        int leftLimit = -origemX - margemX;
+        int rightLimit = (widthArea - origemX) + margemX;
+        int upLimit = -origemY - margemY;
+        int downLimit = (heightArea - origemY) + margemY;
+        
+        double xPixels = widthArea / totalX;
+        double yPixels = heightArea / totalY;
+        double stepX = totalX / 10.0;
+        double stepY = totalY / 10.0;
+        
+        int alturaTexto = metrics.getHeight();
+        int ascentTexto = metrics.getAscent();
         
     	// Calcula e desenha os numeros e grid para X negativo
         for (double x = 0; x >= xMin - stepX; x -= stepX) {
@@ -188,7 +167,6 @@ public class Graph {
             g2d.setColor(gray_color);
             g2d.drawLine(px, upLimit, px, downLimit);
 
-
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
             textSize = metrics.stringWidth(text);
@@ -197,11 +175,25 @@ public class Graph {
         	g2d.setColor(Color.BLACK);
         	
             g2d.drawLine(px, 8, px, -8);
-            g2d.drawString(text, px - (textSize / 2), metrics.getHeight()*3/2);
+            
+            // Se o texto corta pra fora da tela ele nao escreve
+            int xTexto = px - (textSize / 2);
+            if (xTexto < leftLimit + 10) {
+            	continue;
+            }
+            int yTexto = alturaTexto * 3 / 2;
+            if (yTexto > downLimit - 5) {
+                continue;
+            }
+            if (yTexto - ascentTexto < upLimit + 5) {
+            	continue;
+            }
+            
+            g2d.drawString(text, xTexto, yTexto);
         }
         
         // Calcula e desenha os numeros e grid para X positivo
-        for (double x = stepX; x <= xMax; x += stepX) {
+        for (double x = stepX; x <= xMax + stepX; x += stepX) {
         	// Calcula pontos para os numeros de X
         	px = (int) (x * xPixels);
         	
@@ -210,7 +202,6 @@ public class Graph {
             g2d.setColor(gray_color);
             g2d.drawLine(px, upLimit, px, downLimit);
 
-
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
             textSize = metrics.stringWidth(text);
@@ -219,7 +210,18 @@ public class Graph {
         	g2d.setColor(Color.BLACK);
         	
             g2d.drawLine(px, 8, px, -8);
-            g2d.drawString(text, px - (textSize / 2), metrics.getHeight()*3/2);
+            
+            // Se o texto corta pra fora da tela ele nao escreve
+            int xTexto = px - (textSize / 2);
+            if (xTexto + textSize > rightLimit - 10) {
+            	continue;
+            }
+            int yTexto = alturaTexto * 3 / 2;
+            if (yTexto > downLimit - 5) {
+            	continue;
+            }
+            
+            g2d.drawString(text, xTexto, yTexto);
         }
         
         // Calcula e desenha os numeros e grid para Y negativo
@@ -237,17 +239,27 @@ public class Graph {
             
             g2d.drawLine(leftLimit, -px, rightLimit, -px);
             
-            
             // Seta as cores para os numeros e desenha
         	g2d.setStroke(bsNum);
         	g2d.setColor(Color.BLACK);
         	
-        	g2d.drawLine(8, -px, -8, -px); // Positivo
-            g2d.drawString(text, -textSize - 25, -px + (metrics.getAscent()));
+        	g2d.drawLine(8, -px, -8, -px);
+            
+        	// Se o texto corta pra fora da tela ele nao escreve
+            int xTexto = -textSize - 25;
+            if (xTexto < leftLimit + 10) {
+                continue;
+            }
+            int yTexto = -px + (ascentTexto / 2);
+            if (yTexto > downLimit - 5) {
+                continue;
+            }
+            
+            g2d.drawString(text, xTexto, yTexto + 20);
         }
         
         // Calcula e desenha os numeros e grid para Y positivo
-        for (double y = stepY; y <= yMax; y += stepY) {
+        for (double y = stepY; y <= yMax + stepY; y += stepY) {
         	// Calcula pontos para os numeros de Y
             px = (int) (y * yPixels);
             
@@ -261,30 +273,72 @@ public class Graph {
             
             g2d.drawLine(leftLimit, -px, rightLimit, -px);
             
-            
             // Seta as cores para os numeros e desenha
         	g2d.setStroke(bsNum);
         	g2d.setColor(Color.BLACK);
         	
-        	g2d.drawLine(8, -px, -8, -px); // Positivo
-            g2d.drawString(text, -textSize - 25, -px + (metrics.getAscent()));
+        	g2d.drawLine(8, -px, -8, -px);
+            
+        	// Se o texto corta pra fora da tela ele nao escreve
+            int xTexto = -textSize - 25;
+            if (xTexto < leftLimit + 10) {
+                xTexto = leftLimit + 10;
+            }
+            if (xTexto + textSize > rightLimit - 10) {
+                continue;
+            }
+            int yTexto = -px + (ascentTexto / 2);
+            if (yTexto - ascentTexto < upLimit + 5) {
+            	continue;
+            }
+            
+            g2d.drawString(text, xTexto, yTexto + 20);
         }
         
+        // Desenha a linha principal X e Y do grafico
+        g2d.drawLine(leftLimit, 0, rightLimit, 0); 
+        g2d.drawLine(0, upLimit, 0, downLimit);
+        
+        // Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
+        g2d.scale(1.0, -1.0);
     }
     
     // Desenha o subgrid
-    public void drawSubGrid(
-    		Graphics2D g2d,
-    		double stepX, double stepY,
-    		double xMax, double xMin,
-    		double yMax, double yMin,
-    		double xPixels, double yPixels,
-    		int upLimit, int downLimit, int leftLimit, int rightLimit) {
+    public void drawSubGrid(Graphics2D g2d, double xMax, double xMin, double yMax, double yMin) {
+    	
     	// Define a cor e espessura do subgrid
         g2d.setStroke(new BasicStroke(2f));
         g2d.setColor(new Color(220, 220, 220));
+        
+        // Calcula a margem e espaco util para desenho
+        int margemX = (int) (width * 0.05);
+        int margemY = (int) (height * 0.05);
+        int widthArea = width - (margemX * 2);
+        int heightArea = height - (margemY * 2);
+        
+        // Usado na movimentação da origem
+        double totalX = xMax - xMin;
+        double totalY = yMax - yMin;
+        double proporcaoZeroX = -xMin / totalX;
+        double proporcaoZeroY = yMax / totalY;
+        int origemX = (int) (proporcaoZeroX * widthArea);
+        int origemY = (int) (proporcaoZeroY * heightArea);
+        
+        // Limites maximos e minimos
+        int leftLimit = -origemX - margemX;
+        int rightLimit = (widthArea - origemX) + margemX;
+        int upLimit = -origemY - margemY;
+        int downLimit = (heightArea - origemY) + margemY;
+        
+        double xPixels = widthArea / totalX;
+        double yPixels = heightArea / totalY;
+        double stepX = totalX / 10.0;
+        double stepY = totalY / 10.0;
+        
         double stepSubX = stepX/5.0;
 
+        // Seta o ponto (0, 0) do grafico
+        g2d.translate(margemX + origemX, margemY + origemY);
         
         // Calcula e desenha os numeros e grid para X negativo
         for (double x = 0; x >= xMin - stepSubX * 5; x -= stepSubX) {
