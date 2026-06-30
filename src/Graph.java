@@ -24,16 +24,8 @@ public class Graph {
 	// Construtor
     public Graph(int width, int height, double xMin, double xMax, double yMin, double yMax) {
     	if (xMin == xMax || yMin == yMax) throw new IllegalArgumentException("Os valores de mínimo e máximo não podem ser iguais");
-    	if (xMin > xMax) {
-    		double aux = xMin;
-    		xMin = xMax;
-    		xMax = aux;
-    	}
-    	if (yMin > yMax) {
-    		double aux = yMin;
-    		yMin = yMax;
-    		yMax = aux;
-    	}
+    	if (xMin > xMax) throw new IllegalArgumentException("O valor de X mínimo não pode ser maior que o valor de X máximo");
+    	if (yMin > yMax) throw new IllegalArgumentException("O valor de Y mínimo não pode ser maior que o valor de Y máximo");
 		this.width = width;
 		this.height = height;
 		this.xMin = xMin;
@@ -182,7 +174,7 @@ public class Graph {
         int ascentTexto = metrics.getAscent();
         
     	// Calcula e desenha os numeros e grid para X negativo
-        for (double x = 0; x >= xMin - stepX; x -= stepX) {
+        for (double x = -stepX; x >= xMin - stepX; x -= stepX) {
         	// Calcula pontos para os numeros de X
         	px = (int) (x * xPixels);
         	
@@ -191,7 +183,6 @@ public class Graph {
             g2d.setColor(gray_color);
             g2d.drawLine(px, upLimit, px, downLimit);
 
-            if (x == 0) continue;
             
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
@@ -209,10 +200,9 @@ public class Graph {
             }
             int yTexto = alturaTexto * 3 / 2;
             if (yTexto > downLimit - 5) {
-                continue;
-            }
-            if (yTexto - ascentTexto < upLimit + 5) {
-            	continue;
+                yTexto = downLimit - alturaTexto - 5;
+            } else if (yTexto - ascentTexto < upLimit + 5) {
+                yTexto = upLimit + ascentTexto + 5;
             }
             
             g2d.drawString(text, xTexto, yTexto);
@@ -227,8 +217,6 @@ public class Graph {
             g2d.setStroke(bsGrid);
             g2d.setColor(gray_color);
             g2d.drawLine(px, upLimit, px, downLimit);
-
-            if (x == 0) continue;
             
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
@@ -246,7 +234,9 @@ public class Graph {
             }
             int yTexto = alturaTexto * 3 / 2;
             if (yTexto > downLimit - 5) {
-            	continue;
+                yTexto = downLimit - alturaTexto - 5;
+            } else if (yTexto - ascentTexto < upLimit + 5) {
+                yTexto = upLimit + ascentTexto + 5;
             }
             
             g2d.drawString(text, xTexto, yTexto);
@@ -274,10 +264,13 @@ public class Graph {
         	g2d.drawLine(8, -px, -8, -px);
             
         	// Se o texto corta pra fora da tela ele nao escreve
-            int xTexto = -textSize - 25;
+        	int xTexto = -textSize - 25;
             if (xTexto < leftLimit + 10) {
-                continue;
+                xTexto = leftLimit + 10;
+            } else if (xTexto + textSize > rightLimit - 10) {
+                xTexto = rightLimit - textSize - 10;
             }
+            
             int yTexto = -px + (ascentTexto / 2);
             if (yTexto > downLimit - 5) {
                 continue;
@@ -308,13 +301,13 @@ public class Graph {
         	g2d.drawLine(8, -px, -8, -px);
             
         	// Se o texto corta pra fora da tela ele nao escreve
-            int xTexto = -textSize - 25;
+        	int xTexto = -textSize - 25;
             if (xTexto < leftLimit + 10) {
                 xTexto = leftLimit + 10;
+            } else if (xTexto + textSize > rightLimit - 10) {
+                xTexto = rightLimit - textSize - 10;
             }
-            if (xTexto + textSize > rightLimit - 10) {
-                continue;
-            }
+            
             int yTexto = -px + (ascentTexto / 2);
             if (yTexto - ascentTexto < upLimit + 5) {
             	continue;

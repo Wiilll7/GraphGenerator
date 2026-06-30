@@ -5,7 +5,6 @@ public class Calculus {
 	public final static double ln2 = 0.69314718055994530941723212145;
 	
 	
-	
 	public static double sin(double num) {
 		num = num % (2 * pi);
 	    
@@ -191,10 +190,8 @@ public class Calculus {
 	    return (a >= b) ? a : b;
 	}
 	
-	/*
 	public static void main(String[] args) {
 		System.out.println(pow(2.0, -3.0));
 		System.out.println(Math.pow(2.0, -3.0));
 	}
-	*/
 }
