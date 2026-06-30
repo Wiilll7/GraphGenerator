@@ -6,6 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
 
 public class Graph {
@@ -19,6 +21,7 @@ public class Graph {
 	private double yMax;
 	private BufferedImage imagem;
 	private Graphics2D g2d;
+	private ArrayList<Function> functions = new ArrayList<Function>();
 	
 	
 	// Construtor
@@ -89,20 +92,16 @@ public class Graph {
         return g2d;
     }
     
-    // Chama a funcao de desenhar grafico
-    public void addFunc(IFunction func) {
-    	drawFunction(func,  new Color(173, 33, 52));
-    }
-    
-    // Chama a funcao de desenhar grafico com uma cor definida pelo usuario
-    public void addFunc(IFunction func, Color cor) {
-    	drawFunction(func, cor);
-    }
-    
     // Desenha a funcao em cima do grafico base gerado
-    public void drawFunction(IFunction func, Color cor) {
+    public void drawFunction(Function func) {
+    	
+    	// Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
+        g2d.scale(1.0, -1.0);
+        
+    	if (func.getFunction() == null) return;
+    	
     	g2d.setStroke(new BasicStroke(10.0f));
-        g2d.setColor(cor);
+        g2d.setColor(func.getColor());
     	
     	// Calcula a margem e espaco util para desenho
     	int margemX = (int) (width * 0.05);
@@ -141,6 +140,49 @@ public class Graph {
             }
             g2d.drawLine(pixelX, (int)pixelY1, pixelX + 1, (int)pixelY2);
         }
+        // Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
+        g2d.scale(1.0, -1.0);
+        functions.add(func.clone());
+    }
+    
+    public void drawSubtitles() {
+    	FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
+    	int totalHeight = 0;
+    	int maxWidth = 0;
+    	
+    	for (Function f : functions) {
+    		if (maxWidth < metrics.stringWidth(f.getText())) {
+    			maxWidth = metrics.stringWidth(f.getText());
+    		}
+    		totalHeight += metrics.getAscent();
+    	}
+    	
+    	if (maxWidth <= 0) return;
+    	
+    	int margemX = (int) (width * 0.05);
+        int margemY = (int) (height * 0.05);
+        int widthArea = width - (margemX * 2);
+        int heightArea = height - (margemY * 2);
+    	
+    	double totalX = xMax - xMin;
+        double totalY = yMax - yMin;
+        double proporcaoZeroX = -xMin / totalX;
+        double proporcaoZeroY = yMax / totalY;
+    	int origemX = (int) (proporcaoZeroX * widthArea);
+        int origemY = (int) (proporcaoZeroY * heightArea);
+    	
+        int rightLimit = (widthArea - origemX) + margemX;
+        int downLimit = (heightArea - origemY) + margemY;
+    	
+    	g2d.setColor(Color.lightGray);
+    	
+    	for (int x = rightLimit - 30; x > (rightLimit - maxWidth - 30); x--) {
+    		g2d.drawLine(x, downLimit, x, downLimit - totalHeight);
+    	}
+    	
+    	System.out.println(maxWidth);
+    	g2d.setColor(functions.get(0).getColor());
+    	g2d.drawString(functions.get(0).getText(), 0, 0);
     }
     
     // Desenha o grid
@@ -330,8 +372,6 @@ public class Graph {
         g2d.drawLine(leftLimit, 0, rightLimit, 0); 
         g2d.drawLine(0, upLimit, 0, downLimit);
         
-        // Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
-        g2d.scale(1.0, -1.0);
     }
     
     // Desenha o subgrid

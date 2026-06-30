@@ -4,23 +4,22 @@ public class Main {
 
 	public static void main(String[] args) {
 		
-		Function func = new Function((x) -> (Calculus.sin(x)));
+		Function func = new Function().setFunction((x) -> (Calculus.sin(x))).setSubtitles("AAA");
 		int width = 1920;
         int height = 1920;
         
         Graph gg = new Graph(width, height, -10, 10, -10, 10);
         
-        gg.addFunc(func.getFunction());
+        gg.drawFunction(func);
         
-        func.setFunction((x) -> (Calculus.cos(x)));
+        func.setFunction((x) -> (Calculus.cos(x))).setColor(Color.yellow).setSubtitles("");
         
-        gg.addFunc(func.getFunction(), Color.BLUE);
+        gg.drawFunction(func);
         
-        func.setFunction((x) -> (Calculus.tan(x)));
-        
-        gg.addFunc(func.getFunction(), Color.magenta);
+        gg.drawSubtitles();
         
         gg.generateGraphPng();
+        
         
 	}
 
