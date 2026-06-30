@@ -13,15 +13,16 @@ import javax.imageio.ImageIO;
 public class Graph {
 
 	// Atributos
+	private ArrayList<Function> functions = new ArrayList<Function>();
+	private BufferedImage imagem;
+	private Viewport vp;
+	private Graphics2D g2d;
 	private int width;
 	private int height;
 	private double xMin;
 	private double xMax;
 	private double yMin;
 	private double yMax;
-	private BufferedImage imagem;
-	private Graphics2D g2d;
-	private ArrayList<Function> functions = new ArrayList<Function>();
 	
 	
 	// Construtor
@@ -35,6 +36,7 @@ public class Graph {
 		this.xMax = xMax;
 		this.yMin = yMin;
 		this.yMax = yMax;
+        this.vp = new Viewport(width, height, xMin, xMax, yMin, yMax);
 		this.imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         this.g2d = getBaseGraph();
 	}
@@ -42,7 +44,6 @@ public class Graph {
     
     // Gera o png do grafico final 
 	public void generateGraphPng() {
-		
         g2d.dispose();
 
         try {
@@ -67,7 +68,6 @@ public class Graph {
         
         g2d.setColor(Color.WHITE);
         g2d.fillRect(0, 0, width, height);
-        g2d.setStroke(new BasicStroke(8.0f));
         
         // Aplica uma fonte
         try {
@@ -95,45 +95,43 @@ public class Graph {
     // Desenha a funcao em cima do grafico base gerado
     public void drawFunction(Function func) {
     	
+    	for (Function f : functions) {
+    		if (f.getFunction() == func.getFunction()) {
+    			return;
+    		}
+    	}
+    	
     	// Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
         g2d.scale(1.0, -1.0);
         
     	if (func.getFunction() == null) return;
     	
-    	g2d.setStroke(new BasicStroke(10.0f));
+    	float tamLinha = (float) (Calculus.sqrt(vp.heightArea * vp.widthArea) * 0.005);
+    	
+    	if (tamLinha < 4) {
+    		tamLinha = 4;
+    	}
+    	
+    	g2d.setStroke(new BasicStroke(tamLinha));
         g2d.setColor(func.getColor());
-    	
-    	// Calcula a margem e espaco util para desenho
-    	int margemX = (int) (width * 0.05);
-        int margemY = (int) (height * 0.05);
-        int widthArea = width - (margemX * 2);
-        int heightArea = height - (margemY * 2);
-    	
-        // Usado na movimentação da origem
-        double totalX = xMax - xMin;
-        double totalY = yMax - yMin;
-        double proporcaoZeroX = -xMin / totalX;
-        int origemX = (int) (proporcaoZeroX * widthArea);
         
-        double pixelsX = widthArea / totalX;
-        double pixelsY = heightArea / totalY;
-        int startPixelX = -origemX - margemX;
-        int endPixelX = (widthArea - origemX) + margemX;
+        int startPixelX = -vp.origemX - vp.margemX;
+        int endPixelX = (vp.widthArea - vp.origemX) + vp.margemX;
         
         
         for (int pixelX = startPixelX; pixelX < endPixelX - 1; pixelX++) {
             
-            double x1 = pixelX / pixelsX;
-            double x2 = (pixelX + 1) / pixelsX;
+            double x1 = pixelX / vp.xPixels;
+            double x2 = (pixelX + 1) / vp.xPixels;
             double y1 = func.function(x1);
             double y2 = func.function(x2);
             
             if (Double.isNaN(y1) || Double.isNaN(y2)) continue;
             
-            double pixelY1 = y1 * pixelsY;
-            double pixelY2 = y2 * pixelsY;
+            double pixelY1 = y1 * vp.yPixels;
+            double pixelY2 = y2 * vp.yPixels;
             
-            if (Calculus.abs(pixelY1 - pixelY2) > heightArea * 0.5) {
+            if (Calculus.abs(pixelY1 - pixelY2) > vp.heightArea * 0.5) {
                 if ((y1 > 0 && y2 < 0) || (y1 < 0 && y2 > 0)) {
                     continue; 
                 }
@@ -154,35 +152,23 @@ public class Graph {
     		if (maxWidth < metrics.stringWidth(f.getText())) {
     			maxWidth = metrics.stringWidth(f.getText());
     		}
-    		totalHeight += metrics.getAscent();
+    		if (!f.getText().equals("")) {
+    			totalHeight += metrics.getHeight();
+    		}
     	}
     	
     	if (maxWidth <= 0) return;
     	
-    	int margemX = (int) (width * 0.05);
-        int margemY = (int) (height * 0.05);
-        int widthArea = width - (margemX * 2);
-        int heightArea = height - (margemY * 2);
-    	
-    	double totalX = xMax - xMin;
-        double totalY = yMax - yMin;
-        double proporcaoZeroX = -xMin / totalX;
-        double proporcaoZeroY = yMax / totalY;
-    	int origemX = (int) (proporcaoZeroX * widthArea);
-        int origemY = (int) (proporcaoZeroY * heightArea);
-    	
-        int rightLimit = (widthArea - origemX) + margemX;
-        int downLimit = (heightArea - origemY) + margemY;
-    	
     	g2d.setColor(Color.lightGray);
     	
-    	for (int x = rightLimit - 30; x > (rightLimit - maxWidth - 30); x--) {
-    		g2d.drawLine(x, downLimit, x, downLimit - totalHeight);
+    	int responsiveScale = (int) (vp.widthArea * 0.018);
+    	for (int x = vp.rightLimit - responsiveScale; x > (vp.rightLimit - maxWidth - responsiveScale); x--) {
+    		g2d.drawLine(x, vp.downLimit - responsiveScale, x, vp.downLimit - totalHeight - responsiveScale);
+    		
+    		
     	}
     	
-    	System.out.println(maxWidth);
-    	g2d.setColor(functions.get(0).getColor());
-    	g2d.drawString(functions.get(0).getText(), 0, 0);
+    	
     }
     
     // Desenha o grid
@@ -190,37 +176,17 @@ public class Graph {
     	
     	// Inicializacao de variaveis usadas nos loops
         FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
-        BasicStroke bsNum = new BasicStroke(8.0f);
-        BasicStroke bsGrid = new BasicStroke(4.0f);
+        float tamNum = (float) (Calculus.sqrt(vp.heightArea * vp.widthArea) * 0.004);
+        float tamGrid = (float) (Calculus.sqrt(vp.heightArea * vp.widthArea) * 0.002);
+        BasicStroke bsNum = new BasicStroke(tamNum);
+        BasicStroke bsGrid = new BasicStroke(tamGrid);
         Color gray_color = new Color(89, 87, 88);
         String text;
         int textSize;
         int px;
         
-        // Calcula a margem e espaco util para desenho
-        int margemX = (int) (width * 0.05);
-        int margemY = (int) (height * 0.05);
-        int widthArea = width - (margemX * 2);
-        int heightArea = height - (margemY * 2);
-        
-        // Usado na movimentação da origem
-        double totalX = xMax - xMin;
-        double totalY = yMax - yMin;
-        double proporcaoZeroX = -xMin / totalX;
-        double proporcaoZeroY = yMax / totalY;
-        int origemX = (int) (proporcaoZeroX * widthArea);
-        int origemY = (int) (proporcaoZeroY * heightArea);
-        
-        // Limites maximos e minimos
-        int leftLimit = -origemX - margemX;
-        int rightLimit = (widthArea - origemX) + margemX;
-        int upLimit = -origemY - margemY;
-        int downLimit = (heightArea - origemY) + margemY;
-        
-        double xPixels = widthArea / totalX;
-        double yPixels = heightArea / totalY;
-        double stepX = totalX / 10.0;
-        double stepY = totalY / 10.0;
+        double stepX = vp.totalX / 10.0;
+        double stepY = vp.totalY / 10.0;
         
         int alturaTexto = metrics.getHeight();
         int ascentTexto = metrics.getAscent();
@@ -228,12 +194,12 @@ public class Graph {
     	// Calcula e desenha os numeros e grid para X negativo
         for (double x = -stepX; x >= xMin - stepX; x -= stepX) {
         	// Calcula pontos para os numeros de X
-        	px = (int) (x * xPixels);
+        	px = (int) (x * vp.xPixels);
         	
             // Define as cores para o grid e desenha 
             g2d.setStroke(bsGrid);
             g2d.setColor(gray_color);
-            g2d.drawLine(px, upLimit, px, downLimit);
+            g2d.drawLine(px, vp.upLimit, px, vp.downLimit);
 
             
             // Define o tamanho e as cores para os numeros e desenha
@@ -243,18 +209,18 @@ public class Graph {
         	g2d.setStroke(bsNum);
         	g2d.setColor(Color.BLACK);
         	
-            g2d.drawLine(px, 8, px, -8);
+            g2d.drawLine(px, (int) (vp.widthArea * 0.005), px, -(int) (vp.widthArea * 0.005));
             
             // Se o texto corta pra fora da tela ele nao escreve
             int xTexto = px - (textSize / 2);
-            if (xTexto < leftLimit + 10) {
+            if (xTexto < vp.leftLimit + 10) {
             	continue;
             }
             int yTexto = alturaTexto * 3 / 2;
-            if (yTexto > downLimit - 5) {
-                yTexto = downLimit - alturaTexto - 5;
-            } else if (yTexto - ascentTexto < upLimit + 5) {
-                yTexto = upLimit + ascentTexto + 5;
+            if (yTexto > vp.downLimit - 5) {
+                yTexto = vp.downLimit - alturaTexto - 5;
+            } else if (yTexto - ascentTexto < vp.upLimit + 5) {
+                yTexto = vp.upLimit + ascentTexto + 5;
             }
             
             g2d.drawString(text, xTexto, yTexto);
@@ -263,12 +229,12 @@ public class Graph {
         // Calcula e desenha os numeros e grid para X positivo
         for (double x = stepX; x <= xMax + stepX; x += stepX) {
         	// Calcula pontos para os numeros de X
-        	px = (int) (x * xPixels);
+        	px = (int) (x * vp.xPixels);
         	
             // Define as cores para o grid e desenha 
             g2d.setStroke(bsGrid);
             g2d.setColor(gray_color);
-            g2d.drawLine(px, upLimit, px, downLimit);
+            g2d.drawLine(px, vp.upLimit, px, vp.downLimit);
             
             // Define o tamanho e as cores para os numeros e desenha
             text = String.format("%.1f", x);
@@ -277,18 +243,18 @@ public class Graph {
         	g2d.setStroke(bsNum);
         	g2d.setColor(Color.BLACK);
         	
-            g2d.drawLine(px, 8, px, -8);
+            g2d.drawLine(px, (int) (vp.widthArea * 0.005), px, -(int) (vp.widthArea * 0.005));
             
             // Se o texto corta pra fora da tela ele nao escreve
             int xTexto = px - (textSize / 2);
-            if (xTexto + textSize > rightLimit - 10) {
+            if (xTexto + textSize > vp.rightLimit - 10) {
             	continue;
             }
             int yTexto = alturaTexto * 3 / 2;
-            if (yTexto > downLimit - 5) {
-                yTexto = downLimit - alturaTexto - 5;
-            } else if (yTexto - ascentTexto < upLimit + 5) {
-                yTexto = upLimit + ascentTexto + 5;
+            if (yTexto > vp.downLimit - 5) {
+                yTexto = vp.downLimit - alturaTexto - 5;
+            } else if (yTexto - ascentTexto < vp.upLimit + 5) {
+                yTexto = vp.upLimit + ascentTexto + 5;
             }
             
             g2d.drawString(text, xTexto, yTexto);
@@ -297,7 +263,7 @@ public class Graph {
         // Calcula e desenha os numeros e grid para Y negativo
         for (double y = -stepY; y >= yMin - stepY; y -= stepY) {
         	// Calcula pontos para os numeros de Y
-            px = (int) (y * yPixels);
+            px = (int) (y * vp.yPixels);
             
             // Seta o texto para os positivos
             text = String.format("%.1f", y);
@@ -307,34 +273,34 @@ public class Graph {
             g2d.setStroke(bsGrid);
             g2d.setColor(gray_color);
             
-            g2d.drawLine(leftLimit, -px, rightLimit, -px);
+            g2d.drawLine(vp.leftLimit, -px, vp.rightLimit, -px);
             
             // Seta as cores para os numeros e desenha
         	g2d.setStroke(bsNum);
         	g2d.setColor(Color.BLACK);
         	
-        	g2d.drawLine(8, -px, -8, -px);
+        	g2d.drawLine((int) (vp.heightArea * 0.005), -px, -(int) (vp.heightArea * 0.005), -px);
             
         	// Se o texto corta pra fora da tela ele nao escreve
-        	int xTexto = -textSize - 25;
-            if (xTexto < leftLimit + 10) {
-                xTexto = leftLimit + 10;
-            } else if (xTexto + textSize > rightLimit - 10) {
-                xTexto = rightLimit - textSize - 10;
+        	int xTexto = -textSize - (int) (vp.widthArea * 0.013);
+            if (xTexto < vp.leftLimit + 10) {
+                xTexto = vp.leftLimit + 10;
+            } else if (xTexto + textSize > vp.rightLimit - 10) {
+                xTexto = vp.rightLimit - textSize - 10;
             }
             
             int yTexto = -px + (ascentTexto / 2);
-            if (yTexto > downLimit - 5) {
+            if (yTexto > vp.downLimit - 5) {
                 continue;
             }
             
-            g2d.drawString(text, xTexto, yTexto + 20);
+            g2d.drawString(text, xTexto, yTexto + (int) (vp.heightArea*0.01));
         }
         
         // Calcula e desenha os numeros e grid para Y positivo
         for (double y = stepY; y <= yMax + stepY; y += stepY) {
         	// Calcula pontos para os numeros de Y
-            px = (int) (y * yPixels);
+            px = (int) (y * vp.yPixels);
             
             // Seta o texto para os positivos
             text = String.format("%.1f", y);
@@ -344,33 +310,33 @@ public class Graph {
             g2d.setStroke(bsGrid);
             g2d.setColor(gray_color);
             
-            g2d.drawLine(leftLimit, -px, rightLimit, -px);
+            g2d.drawLine(vp.leftLimit, -px, vp.rightLimit, -px);
             
             // Seta as cores para os numeros e desenha
         	g2d.setStroke(bsNum);
         	g2d.setColor(Color.BLACK);
         	
-        	g2d.drawLine(8, -px, -8, -px);
+        	g2d.drawLine((int) (vp.heightArea * 0.005), -px, -(int) (vp.heightArea * 0.005), -px);
             
         	// Se o texto corta pra fora da tela ele nao escreve
-        	int xTexto = -textSize - 25;
-            if (xTexto < leftLimit + 10) {
-                xTexto = leftLimit + 10;
-            } else if (xTexto + textSize > rightLimit - 10) {
-                xTexto = rightLimit - textSize - 10;
+        	int xTexto = -textSize - (int) (vp.widthArea * 0.013);
+            if (xTexto < vp.leftLimit + 10) {
+                xTexto = vp.leftLimit + 10;
+            } else if (xTexto + textSize > vp.rightLimit - 10) {
+                xTexto = vp.rightLimit - textSize - 10;
             }
             
             int yTexto = -px + (ascentTexto / 2);
-            if (yTexto - ascentTexto < upLimit + 5) {
+            if (yTexto - ascentTexto < vp.upLimit + 5) {
             	continue;
             }
             
-            g2d.drawString(text, xTexto, yTexto + 20);
+            g2d.drawString(text, xTexto, yTexto + (int) (vp.heightArea*0.01));
         }
         
         // Desenha a linha principal X e Y do grafico
-        g2d.drawLine(leftLimit, 0, rightLimit, 0); 
-        g2d.drawLine(0, upLimit, 0, downLimit);
+        g2d.drawLine(vp.leftLimit, 0, vp.rightLimit, 0); 
+        g2d.drawLine(0, vp.upLimit, 0, vp.downLimit);
         
     }
     
@@ -378,63 +344,42 @@ public class Graph {
     public void drawSubGrid() {
     	
     	// Define a cor e espessura do subgrid
-        g2d.setStroke(new BasicStroke(2f));
+    	float numSubgrid = (float) (Calculus.sqrt(vp.heightArea * vp.widthArea) * 0.001);
+        g2d.setStroke(new BasicStroke(numSubgrid));
         g2d.setColor(new Color(220, 220, 220));
         
-        // Calcula a margem e espaco util para desenho
-        int margemX = (int) (width * 0.05);
-        int margemY = (int) (height * 0.05);
-        int widthArea = width - (margemX * 2);
-        int heightArea = height - (margemY * 2);
-        
-        // Usado na movimentação da origem
-        double totalX = xMax - xMin;
-        double totalY = yMax - yMin;
-        double proporcaoZeroX = -xMin / totalX;
-        double proporcaoZeroY = yMax / totalY;
-        int origemX = (int) (proporcaoZeroX * widthArea);
-        int origemY = (int) (proporcaoZeroY * heightArea);
-        
-        // Limites maximos e minimos
-        int leftLimit = -origemX - margemX;
-        int rightLimit = (widthArea - origemX) + margemX;
-        int upLimit = -origemY - margemY;
-        int downLimit = (heightArea - origemY) + margemY;
-        
-        double xPixels = widthArea / totalX;
-        double yPixels = heightArea / totalY;
-        double stepX = totalX / 10.0;
-        double stepY = totalY / 10.0;
+        double stepX = vp.totalX / 10.0;
+        double stepY = vp.totalY / 10.0;
         
         double stepSubX = stepX/5.0;
 
         // Seta o ponto (0, 0) do grafico
-        g2d.translate(margemX + origemX, margemY + origemY);
+        g2d.translate(vp.margemX + vp.origemX, vp.margemY + vp.origemY);
         
         // Calcula e desenha os numeros e grid para X negativo
         for (double x = 0; x >= xMin - stepSubX * 5; x -= stepSubX) {
-        	int px = (int) (x * xPixels);
-            g2d.drawLine(px, upLimit, px, downLimit);
+        	int px = (int) (x * vp.xPixels);
+            g2d.drawLine(px, vp.upLimit, px, vp.downLimit);
         }
         
         // Calcula e desenha os numeros e grid para X positivo
         for (double x = stepSubX; x <= xMax + stepSubX * 5; x += stepSubX) {
-        	int px = (int) (x * xPixels);
-            g2d.drawLine(px, upLimit, px, downLimit);
+        	int px = (int) (x * vp.xPixels);
+            g2d.drawLine(px, vp.upLimit, px, vp.downLimit);
         }
         
         double stepSubY = stepY/5.0;
         
         // Calcula e desenha os numeros e grid para Y negativo
         for (double y = -stepSubY; y >= yMin - stepSubY * 5; y -= stepSubY) {
-        	int py = (int) (y * yPixels);
-            g2d.drawLine(leftLimit, -py, rightLimit, -py);
+        	int py = (int) (y * vp.yPixels);
+            g2d.drawLine(vp.leftLimit, -py, vp.rightLimit, -py);
         }
         
         // Calcula e desenha os numeros e grid para Y positivo
         for (double y = stepSubY; y <= yMax + stepSubX * 5; y += stepSubY) {
-        	int py = (int) (y * yPixels);
-            g2d.drawLine(leftLimit, -py, rightLimit, -py);
+        	int py = (int) (y * vp.yPixels);
+            g2d.drawLine(vp.leftLimit, -py, vp.rightLimit, -py);
         }
     }
     

@@ -12,7 +12,11 @@ public class Main {
         
         gg.drawFunction(func);
         
-        func.setFunction((x) -> (Calculus.cos(x))).setColor(Color.yellow).setSubtitles("");
+        func.setFunction((x) -> (Calculus.cos(x))).setColor(Color.black).setSubtitles("BBB");
+        
+        gg.drawFunction(func);
+        
+        func.setFunction((x) -> (1 - Calculus.sin(x))/Calculus.cos(x)).setColor(new Color(86, 28, 153));
         
         gg.drawFunction(func);
         
