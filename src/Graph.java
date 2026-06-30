@@ -89,10 +89,20 @@ public class Graph {
         return g2d;
     }
     
+    // Chama a funcao de desenhar grafico
+    public void addFunc(IFunction func) {
+    	drawFunction(func,  new Color(173, 33, 52));
+    }
+    
+    // Chama a funcao de desenhar grafico com uma cor definida pelo usuario
+    public void addFunc(IFunction func, Color cor) {
+    	drawFunction(func, cor);
+    }
+    
     // Desenha a funcao em cima do grafico base gerado
-    public void addFunc(Function func) {
+    public void drawFunction(IFunction func, Color cor) {
     	g2d.setStroke(new BasicStroke(10.0f));
-        g2d.setColor(new Color(173, 33, 52));
+        g2d.setColor(cor);
     	
     	// Calcula a margem e espaco util para desenho
     	int margemX = (int) (width * 0.05);
