@@ -4,7 +4,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		
-		Function func = new Function().setFunction((x) -> (Calculus.sin(x))).setSubtitles("AAA");
+		Function func = new Function().setFunction((x) -> (Calculus.sin(x))).setSubtitles("sin(x)");
 		int width = 1920;
         int height = 1920;
         
@@ -12,11 +12,11 @@ public class Main {
         
         gg.drawFunction(func);
         
-        func.setFunction((x) -> (Calculus.cos(x))).setColor(Color.black).setSubtitles("BBB");
+        func.setFunction((x) -> (Calculus.cos(x))).setColor(Color.blue).setSubtitles("cos(x)");
         
         gg.drawFunction(func);
         
-        func.setFunction((x) -> (1 - Calculus.sin(x))/Calculus.cos(x)).setColor(new Color(86, 28, 153));
+        func.setFunction((x) -> (1 - Calculus.sin(x))/Calculus.cos(x)).setColor(new Color(86, 28, 153)).setSubtitles("(1-sin(x))/cos(x)");
         
         gg.drawFunction(func);
         

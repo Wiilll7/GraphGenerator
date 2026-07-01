@@ -1,5 +1,4 @@
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -14,6 +13,7 @@ public class Graph {
 
 	// Atributos
 	private ArrayList<Function> functions = new ArrayList<Function>();
+	private Theme theme;
 	private BufferedImage imagem;
 	private Viewport vp;
 	private Graphics2D g2d;
@@ -30,6 +30,7 @@ public class Graph {
     	if (xMin == xMax || yMin == yMax) throw new IllegalArgumentException("Os valores de mínimo e máximo não podem ser iguais");
     	if (xMin > xMax) throw new IllegalArgumentException("O valor de X mínimo não pode ser maior que o valor de X máximo");
     	if (yMin > yMax) throw new IllegalArgumentException("O valor de Y mínimo não pode ser maior que o valor de Y máximo");
+    	this.theme = Theme.DARK_MODE;
 		this.width = width;
 		this.height = height;
 		this.xMin = xMin;
@@ -66,12 +67,12 @@ public class Graph {
         g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         
-        g2d.setColor(Color.WHITE);
+        g2d.setColor(theme.getBackground());
         g2d.fillRect(0, 0, width, height);
         
         // Aplica uma fonte
         try {
-            File fonte = new File("assets/VCR_OSD_MONO.ttf");
+            File fonte = new File("assets/vhs-gothic.ttf");
             float fontSize = Calculus.min(width, height) * 0.0215f;
             
             if (fontSize < 12f) {
@@ -80,7 +81,6 @@ public class Graph {
             
             Font font = Font.createFont(Font.TRUETYPE_FONT, fonte).deriveFont(fontSize);
             g2d.setFont(font);
-            g2d.setColor(Color.BLACK);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -146,29 +146,54 @@ public class Graph {
     public void drawSubtitles() {
     	FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
     	int totalHeight = 0;
-    	int maxWidth = 0;
+    	int maxTextWidth = 0;
     	
     	for (Function f : functions) {
-    		if (maxWidth < metrics.stringWidth(f.getText())) {
-    			maxWidth = metrics.stringWidth(f.getText());
+    		if (maxTextWidth < metrics.stringWidth(f.getText())) {
+    			maxTextWidth = metrics.stringWidth(f.getText());
     		}
     		if (!f.getText().equals("")) {
-    			totalHeight += metrics.getHeight();
+    			totalHeight += metrics.getHeight() + (int)(vp.heightArea * 0.0036d);
     		}
     	}
     	
-    	if (maxWidth <= 0) return;
+    	if (maxTextWidth <= 0) return;
     	
-    	g2d.setColor(Color.lightGray);
+    	int squareSize = (int) (metrics.getHeight() * 0.6);
+    	int gap = (int) (vp.widthArea * 0.004);
+    	int padding = (int) (Calculus.sqrt(vp.widthArea * vp.heightArea) * 0.005);
     	
-    	int responsiveScale = (int) (vp.widthArea * 0.018);
-    	for (int x = vp.rightLimit - responsiveScale; x > (vp.rightLimit - maxWidth - responsiveScale); x--) {
-    		g2d.drawLine(x, vp.downLimit - responsiveScale, x, vp.downLimit - totalHeight - responsiveScale);
-    		
-    		
+    	int boxWidth = maxTextWidth + squareSize + gap + (padding * 2);
+    	int boxHeight = totalHeight + padding; 
+    	
+    	g2d.setColor(theme.getSubtitleBackground());
+    	
+    	int margin = (int) (vp.widthArea * 0.018);
+    	
+    	int boxRight = vp.rightLimit - margin;
+    	int boxLeft = boxRight - boxWidth;
+    	int boxBottom = vp.downLimit - margin;
+    	int boxTop = boxBottom - boxHeight;
+    	
+    	g2d.fillRect(boxLeft, boxTop, boxWidth, boxHeight);
+    	
+    	int stepY = padding + metrics.getAscent(); 
+    	
+    	for (Function f : functions) {
+    		if (!f.getText().equals("")) {
+	    		g2d.setColor(f.getColor());
+	    		
+	    		int sqX = boxLeft + padding;
+	    		int sqY = boxTop + stepY - metrics.getAscent() + ((metrics.getAscent() - squareSize)/2);
+	    		
+	    		g2d.fillRect(sqX, sqY, squareSize, squareSize);
+	    		
+	    		int textX = sqX + squareSize + gap;
+	    		g2d.drawString(f.getText(), textX, boxTop + stepY);
+	    		
+	    		stepY += metrics.getHeight() + (int)(vp.heightArea * 0.0036d);
+    		}
     	}
-    	
-    	
     }
     
     // Desenha o grid
@@ -180,7 +205,6 @@ public class Graph {
         float tamGrid = (float) (Calculus.sqrt(vp.heightArea * vp.widthArea) * 0.002);
         BasicStroke bsNum = new BasicStroke(tamNum);
         BasicStroke bsGrid = new BasicStroke(tamGrid);
-        Color gray_color = new Color(89, 87, 88);
         String text;
         int textSize;
         int px;
@@ -198,7 +222,7 @@ public class Graph {
         	
             // Define as cores para o grid e desenha 
             g2d.setStroke(bsGrid);
-            g2d.setColor(gray_color);
+            g2d.setColor(theme.getGridPrincipal());
             g2d.drawLine(px, vp.upLimit, px, vp.downLimit);
 
             
@@ -207,7 +231,7 @@ public class Graph {
             textSize = metrics.stringWidth(text);
             
         	g2d.setStroke(bsNum);
-        	g2d.setColor(Color.BLACK);
+        	g2d.setColor(theme.getNumbers());
         	
             g2d.drawLine(px, (int) (vp.widthArea * 0.005), px, -(int) (vp.widthArea * 0.005));
             
@@ -233,7 +257,7 @@ public class Graph {
         	
             // Define as cores para o grid e desenha 
             g2d.setStroke(bsGrid);
-            g2d.setColor(gray_color);
+            g2d.setColor(theme.getGridPrincipal());
             g2d.drawLine(px, vp.upLimit, px, vp.downLimit);
             
             // Define o tamanho e as cores para os numeros e desenha
@@ -241,7 +265,7 @@ public class Graph {
             textSize = metrics.stringWidth(text);
             
         	g2d.setStroke(bsNum);
-        	g2d.setColor(Color.BLACK);
+        	g2d.setColor(theme.getNumbers());
         	
             g2d.drawLine(px, (int) (vp.widthArea * 0.005), px, -(int) (vp.widthArea * 0.005));
             
@@ -271,13 +295,13 @@ public class Graph {
             
             // Seta as cores para o grid e desenha 
             g2d.setStroke(bsGrid);
-            g2d.setColor(gray_color);
+            g2d.setColor(theme.getGridPrincipal());
             
             g2d.drawLine(vp.leftLimit, -px, vp.rightLimit, -px);
             
             // Seta as cores para os numeros e desenha
         	g2d.setStroke(bsNum);
-        	g2d.setColor(Color.BLACK);
+        	g2d.setColor(theme.getNumbers());
         	
         	g2d.drawLine((int) (vp.heightArea * 0.005), -px, -(int) (vp.heightArea * 0.005), -px);
             
@@ -308,13 +332,13 @@ public class Graph {
             
             // Seta as cores para o grid e desenha 
             g2d.setStroke(bsGrid);
-            g2d.setColor(gray_color);
+            g2d.setColor(theme.getGridPrincipal());
             
             g2d.drawLine(vp.leftLimit, -px, vp.rightLimit, -px);
             
             // Seta as cores para os numeros e desenha
         	g2d.setStroke(bsNum);
-        	g2d.setColor(Color.BLACK);
+        	g2d.setColor(theme.getNumbers());
         	
         	g2d.drawLine((int) (vp.heightArea * 0.005), -px, -(int) (vp.heightArea * 0.005), -px);
             
@@ -334,6 +358,8 @@ public class Graph {
             g2d.drawString(text, xTexto, yTexto + (int) (vp.heightArea*0.01));
         }
         
+        g2d.setColor(theme.getAxisXY());
+        
         // Desenha a linha principal X e Y do grafico
         g2d.drawLine(vp.leftLimit, 0, vp.rightLimit, 0); 
         g2d.drawLine(0, vp.upLimit, 0, vp.downLimit);
@@ -346,7 +372,7 @@ public class Graph {
     	// Define a cor e espessura do subgrid
     	float numSubgrid = (float) (Calculus.sqrt(vp.heightArea * vp.widthArea) * 0.001);
         g2d.setStroke(new BasicStroke(numSubgrid));
-        g2d.setColor(new Color(220, 220, 220));
+        g2d.setColor(theme.getSubGrid());
         
         double stepX = vp.totalX / 10.0;
         double stepY = vp.totalY / 10.0;
