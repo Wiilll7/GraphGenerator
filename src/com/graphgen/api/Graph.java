@@ -48,7 +48,7 @@ public class Graph {
 		this.imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 	}
 
-    // Define o tema
+    // Define o tema (precisa ser definido antes de desenhar no grafico)
     public void setTheme(Theme theme) {
     	this.theme = theme;
     }

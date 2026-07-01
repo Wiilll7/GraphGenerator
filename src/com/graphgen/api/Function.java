@@ -1,4 +1,5 @@
 package com.graphgen.api;
+
 import java.awt.Color;
 
 public class Function {
