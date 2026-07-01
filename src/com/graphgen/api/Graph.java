@@ -16,23 +16,62 @@ import com.graphgen.core.Viewport;
 import com.graphgen.style.Theme;
 import com.graphgen.util.Calculus;
 
+/**
+ * Classe principal do framework responsável por gerenciar a área de desenho,
+ * processar as funções matemáticas e gerar a imagem final do gráfico.
+ * Esta classe utiliza o Viewport para cálculos de proporção, o Theme para estilização
+ * e a renderização de pixels via Java 2D API.
+ * @author Willian Moretti
+ * @version 1.0
+ */
 public class Graph {
 
-	// Atributos
+
+	/** Lista que armazena todas as funções adicionadas ao gráfico para renderização e legenda. */
 	private ArrayList<Function> functions = new ArrayList<Function>();
+	
+	/** O tema visual atual aplicado ao gráfico. */
 	private Theme theme;
+	
+	/** O buffer de imagem na memória onde os pixels do gráfico são desenhados. */
 	private BufferedImage imagem;
+	
+	/** O gerenciador de mapeamento entre coordenadas matemáticas e pixels da tela. */
 	private Viewport vp;
+	
+	/** O contexto gráfico 2D utilizado para desenhar formas e textos na imagem. */
 	private Graphics2D g2d;
+	
+	/** A largura total da imagem gerada em pixels. */
 	private int width;
+	
+	/** A altura total da imagem gerada em pixels. */
 	private int height;
+	
+	/** O limite mínimo do eixo X no plano cartesiano. */
 	private double xMin;
+	
+	/** O limite máximo do eixo X no plano cartesiano. */
 	private double xMax;
+	
+	/** O limite mínimo do eixo Y no plano cartesiano. */
 	private double yMin;
+	
+	/** O limite máximo do eixo Y no plano cartesiano. */
 	private double yMax;
 	
-	
-	// Construtor
+
+	/**
+	 * Construtor principal da classe Graph. Inicializa a imagem em branco e o mapeamento da tela 
+	 * com base nas dimensões físicas e nos limites matemáticos fornecidos.
+	 * @param width A largura total da imagem gerada em pixels.
+	 * @param height A altura total da imagem gerada em pixels.
+	 * @param xMin O valor mínimo do eixo X no plano cartesiano.
+	 * @param xMax O valor máximo do eixo X no plano cartesiano.
+	 * @param yMin O valor mínimo do eixo Y no plano cartesiano.
+	 * @param yMax O valor máximo do eixo Y no plano cartesiano.
+	 * @throws IllegalArgumentException Se os valores mínimos e máximos forem iguais, ou se o mínimo for maior que o máximo.
+	 */
     public Graph(int width, int height, double xMin, double xMax, double yMin, double yMax) {
     	if (xMin == xMax || yMin == yMax) throw new IllegalArgumentException("Os valores de mínimo e máximo não podem ser iguais");
     	if (xMin > xMax) throw new IllegalArgumentException("O valor de X mínimo não pode ser maior que o valor de X máximo");
@@ -48,12 +87,20 @@ public class Graph {
 		this.imagem = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 	}
 
-    // Define o tema (precisa ser definido antes de desenhar no grafico)
+    /**
+     * Define o tema visual do gráfico.
+     * Recomenda-se chamar este método logo após a criação do objeto Graph, antes de desenhar as funções.
+     * @param theme O objeto Theme contendo a paleta de cores desejada.
+     */
     public void setTheme(Theme theme) {
     	this.theme = theme;
     }
     
-    // Gera o png do grafico final e limpa o g2d
+    /**
+     * Finaliza os desenhos e exporta a imagem do gráfico para um arquivo físico.
+     * O arquivo será salvo automaticamente com o nome "Grafico.png" na pasta raiz de execução do projeto.
+     * Libera os recursos de memória do Graphics2D após a geração.
+     */
 	public void generateGraphPng() {
 		
 		if (g2d == null) {
@@ -71,44 +118,13 @@ public class Graph {
         }
     }
     
-    // Desenha o grafico base (linhas X e Y, escala e grid)
-    private Graphics2D getBaseGraph(){
-    	
-    	// Inicializa o Graphics2D e seta algumas configurações de estilos para ele
-        g2d = imagem.createGraphics();
-        
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        
-        g2d.setColor(theme.getBackground());
-        g2d.fillRect(0, 0, width, height);
-        
-        // Aplica uma fonte
-        try {
-        	InputStream fonte = getClass().getResourceAsStream("/assets/vhs-gothic.ttf");
-        	
-            float fontSize = Calculus.min(width, height) * 0.0215f;
-            
-            if (fontSize < 12f) {
-            	fontSize = 12f;
-            } 
-            
-            Font font = Font.createFont(Font.TRUETYPE_FONT, fonte).deriveFont(fontSize);
-            g2d.setFont(font);
-            fonte.close();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        
-        drawSubGrid();
-        drawGrid();
-        
-        return g2d;
-    }
-    
-    // Desenha a funcao em cima do grafico base gerado
+    /**
+     * Adiciona e renderiza uma nova função matemática sobre o gráfico.
+     * A função é avaliada pixel a pixel da esquerda para a direita, ignorando automaticamente 
+     * saltos abruptos, como assíntotas verticais. A função desenhada será clonada e salva internamente 
+     * para geração futura da legenda.
+     * @param func O objeto Function contendo a expressão matemática e suas propriedades visuais.
+     */
     public void drawFunction(Function func) {
     	
     	if (g2d == null) {
@@ -121,7 +137,7 @@ public class Graph {
     		}
     	}
     	
-    	// Inverte a escala de Y para positivos p/ cima e negativos p/ baixo
+    	// Inverte a escala de Y para positivos para cima e negativos para baixo
         g2d.scale(1.0, -1.0);
         
     	if (func.getFunction() == null) return;
@@ -170,7 +186,11 @@ public class Graph {
         functions.add(func.clone());
     }
     
-    // Desenha a leganda no grafico | se nenhuma funcao tiver apenas pula
+    /**
+     * Desenha a caixa de legendas flutuante no canto inferior direito do gráfico.
+     * A legenda irá listar a cor e o texto de todas as funções que foram adicionadas 
+     * através do método {@code drawFunction}. Se nenhuma função possuir texto definido, a legenda não será gerada.
+     */
     public void drawSubtitles() {
     	
     	if (g2d == null) {
@@ -236,8 +256,54 @@ public class Graph {
     		}
     	}
     }
+
+    /**
+     * Inicializa o contexto gráfico 2D, aplica as configurações de anti-aliasing 
+     * e desenha os elementos de fundo do gráfico, cor de fundo, malhas de grade e eixos.
+     * Este método é de uso estritamente interno e serve como preparação da "tela" antes do desenho das funções.
+     * @return O objeto Graphics2D configurado e pronto para uso.
+     */
+    private Graphics2D getBaseGraph(){
+    	
+    	// Inicializa o Graphics2D e define algumas configurações de estilos para ele
+        g2d = imagem.createGraphics();
+        
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        
+        g2d.setColor(theme.getBackground());
+        g2d.fillRect(0, 0, width, height);
+        
+        // Aplica uma fonte
+        try {
+        	InputStream fonte = getClass().getResourceAsStream("/assets/vhs-gothic.ttf");
+        	
+            float fontSize = Calculus.min(width, height) * 0.0215f;
+            
+            if (fontSize < 12f) {
+            	fontSize = 12f;
+            } 
+            
+            Font font = Font.createFont(Font.TRUETYPE_FONT, fonte).deriveFont(fontSize);
+            g2d.setFont(font);
+            fonte.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        
+        drawSubGrid();
+        drawGrid();
+        
+        return g2d;
+    }
     
-    // Desenha o grid
+    /**
+     * Calcula e desenha a grade principal do gráfico e a 
+     * numeração ao longo dos eixos X e Y. A escala numérica é calculada automaticamente baseada 
+     * nos limites da tela definidos no Viewport e no estilo definido pelo Theme.
+     */
     private void drawGrid() {
     	
     	// Inicializacao de variaveis usadas nos loops
@@ -407,7 +473,9 @@ public class Graph {
         
     }
     
-    // Desenha o subgrid
+    /**
+     * Calcula e desenha a sub-grade do gráfico que ficam entre as marcações principais da grade.
+     */
     private void drawSubGrid() {
     	
     	// Define a cor e espessura do subgrid
@@ -420,7 +488,7 @@ public class Graph {
         
         double stepSubX = stepX/5.0;
 
-        // Seta o ponto (0, 0) do grafico
+        // Define o ponto (0, 0) do grafico
         g2d.translate(vp.margemX + vp.origemX, vp.margemY + vp.origemY);
         
         // Calcula e desenha os numeros e grid para X negativo

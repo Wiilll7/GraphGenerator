@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"com.graphgen.util","l":"Calculus"},{"p":"com.graphgen.api","l":"Function"},{"p":"com.graphgen.style","l":"Theme"}];updateSearchResults();
