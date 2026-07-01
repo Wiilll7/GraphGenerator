@@ -1,3 +1,4 @@
+package com.graphgen.util;
 public class Calculus {
 
 	// Definicao de valores constantes usados nos calculos

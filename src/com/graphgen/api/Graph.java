@@ -1,3 +1,5 @@
+package com.graphgen.api;
+
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -9,6 +11,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+
+import com.graphgen.core.Viewport;
+import com.graphgen.style.Theme;
+import com.graphgen.util.Calculus;
 
 public class Graph {
 

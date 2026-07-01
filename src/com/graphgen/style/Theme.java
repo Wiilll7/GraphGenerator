@@ -1,3 +1,4 @@
+package com.graphgen.style;
 import java.awt.Color;
 
 public class Theme {
